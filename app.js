@@ -1,6 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
-tg.enableClosingConfirmation();
+// УБРАЛИ tg.enableClosingConfirmation() — он блокирует закрытие!
 
 // ── Секторы колеса ──────────────────────────────────────────────────────────
 const SECTORS = [
@@ -27,9 +27,10 @@ const CY = H / 2;
 const R = W / 2 - 4;
 
 // ── Состояние ────────────────────────────────────────────────────────────────
-let currentAngle = 0;   // текущий угол (рад)
+let currentAngle = 0;
 let spinning = false;
 let animId = null;
+let pendingStars = null; // сохраняем выигрыш здесь
 
 // ── Рисуем колесо ────────────────────────────────────────────────────────────
 function drawWheel(angle) {
@@ -39,7 +40,6 @@ function drawWheel(angle) {
         const startAngle = angle + i * ARC;
         const endAngle   = startAngle + ARC;
 
-        // Сектор
         ctx.beginPath();
         ctx.moveTo(CX, CY);
         ctx.arc(CX, CY, R, startAngle, endAngle);
@@ -47,12 +47,10 @@ function drawWheel(angle) {
         ctx.fillStyle = SECTORS[i].color;
         ctx.fill();
 
-        // Граница
         ctx.strokeStyle = "rgba(255,255,255,0.25)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Текст
         ctx.save();
         ctx.translate(CX, CY);
         ctx.rotate(startAngle + ARC / 2);
@@ -65,7 +63,6 @@ function drawWheel(angle) {
         ctx.restore();
     }
 
-    // Центральный круг
     const grad = ctx.createRadialGradient(CX, CY, 6, CX, CY, 28);
     grad.addColorStop(0, "#fff");
     grad.addColorStop(1, "#FFD700");
@@ -77,7 +74,6 @@ function drawWheel(angle) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Центральный значок
     ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -86,7 +82,6 @@ function drawWheel(angle) {
     ctx.fillText("🎡", CX, CY);
 }
 
-// Начальная отрисовка
 drawWheel(currentAngle);
 
 // ── Easing ────────────────────────────────────────────────────────────────────
@@ -98,6 +93,7 @@ function easeOut(t) {
 function spin() {
     if (spinning) return;
     spinning = true;
+    pendingStars = null;
 
     const btn = document.getElementById("spin-btn");
     const resultBox = document.getElementById("result-box");
@@ -106,23 +102,16 @@ function spin() {
     btn.disabled = true;
     resultBox.classList.add("hidden");
 
-    // Случайный победный сектор
     const winningSector = Math.floor(Math.random() * NUM);
 
-    // Сколько полных оборотов + выравнивание на победный сектор
     const fullRotations = (5 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
-
-    // Угол, при котором стрелка (сверху, т.е. -π/2) попадает на центр сектора
-    // Центр сектора i: currentAngle + i*ARC + ARC/2
-    // Хотим: startAngle + winningSector*ARC + ARC/2 = -π/2  (mod 2π)
-    // → startAngle = -π/2 - winningSector*ARC - ARC/2
     const targetAngle =
         currentAngle +
         fullRotations +
         ((-Math.PI / 2 - currentAngle - winningSector * ARC - ARC / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
 
     const totalDelta = targetAngle - currentAngle;
-    const duration = 4000 + Math.random() * 1500; // 4–5.5 с
+    const duration = 4000 + Math.random() * 1500;
     const startTime = performance.now();
     const startAngle = currentAngle;
 
@@ -139,20 +128,24 @@ function spin() {
             drawWheel(currentAngle);
             spinning = false;
 
-            // Показываем результат
             const won = SECTORS[winningSector];
+            pendingStars = won.stars; // сохраняем!
+
             resultText.textContent = `🎉 Ты выиграл ${won.label}!`;
             resultBox.classList.remove("hidden");
 
-            // Эффект частиц
             spawnParticles(won.stars);
 
-            // Кнопка «Забрать» через 1.5 сек
             setTimeout(() => {
                 btn.textContent = "✅ Забрать выигрыш";
                 btn.disabled = false;
-                btn.removeEventListener("click", spin);
-                btn.onclick = () => claimReward(won.stars);
+                // полностью заменяем обработчик
+                btn.onclick = null;
+                btn.replaceWith(btn.cloneNode(true)); // убираем все старые listeners
+                const newBtn = document.getElementById("spin-btn");
+                newBtn.textContent = "✅ Забрать выигрыш";
+                newBtn.disabled = false;
+                newBtn.onclick = claimReward;
             }, 1500);
         }
     }
@@ -161,8 +154,25 @@ function spin() {
 }
 
 // ── Отправка результата в бот ────────────────────────────────────────────────
-function claimReward(stars) {
-    tg.sendData(JSON.stringify({ result: stars }));
+function claimReward() {
+    if (pendingStars === null) {
+        alert("Ошибка: нет результата для отправки");
+        return;
+    }
+
+    const payload = JSON.stringify({ result: pendingStars });
+
+    // Проверяем что sendData доступен
+    if (!tg || typeof tg.sendData !== "function") {
+        alert("Ошибка: Telegram WebApp недоступен");
+        return;
+    }
+
+    try {
+        tg.sendData(payload);
+    } catch (e) {
+        alert("Не удалось отправить: " + e.message + "\n\nВозможно WebApp открыт не через кнопку бота.");
+    }
 }
 
 // ── Частицы-звёзды ───────────────────────────────────────────────────────────
