@@ -151,6 +151,7 @@ function spin() {
             setTimeout(() => {
                 btn.textContent = "✅ Забрать выигрыш";
                 btn.disabled = false;
+                btn.removeEventListener("click", spin);
                 btn.onclick = () => claimReward(won.stars);
             }, 1500);
         }
@@ -181,4 +182,5 @@ function spawnParticles(count) {
 }
 
 // ── Кнопка ───────────────────────────────────────────────────────────────────
-document.getElementById("spin-btn").addEventListener("click", spin);
+const btn = document.getElementById("spin-btn");
+btn.addEventListener("click", spin);
