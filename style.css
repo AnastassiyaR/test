@@ -1,0 +1,21 @@
+body {
+    background: #1c1c1c;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 40px;
+}
+
+button {
+    background: #4a8cff;
+    border: none;
+    padding: 15px 25px;
+    font-size: 18px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.97);
+}
