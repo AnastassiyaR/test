@@ -1,8 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
-// УБРАЛИ tg.enableClosingConfirmation() — он блокирует закрытие!
 
-// ── Секторы колеса ──────────────────────────────────────────────────────────
 const SECTORS = [
     { label: "1⭐",  stars: 1,  color: "#e74c3c" },
     { label: "2⭐",  stars: 2,  color: "#e67e22" },
@@ -17,7 +15,6 @@ const SECTORS = [
 const NUM = SECTORS.length;
 const ARC = (2 * Math.PI) / NUM;
 
-// ── Canvas ──────────────────────────────────────────────────────────────────
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
 const W = canvas.width;
@@ -26,13 +23,11 @@ const CX = W / 2;
 const CY = H / 2;
 const R = W / 2 - 4;
 
-// ── Состояние ────────────────────────────────────────────────────────────────
 let currentAngle = 0;
 let spinning = false;
 let animId = null;
-let pendingStars = null; // сохраняем выигрыш здесь
+let pendingStars = null;
 
-// ── Рисуем колесо ────────────────────────────────────────────────────────────
 function drawWheel(angle) {
     ctx.clearRect(0, 0, W, H);
 
@@ -84,12 +79,10 @@ function drawWheel(angle) {
 
 drawWheel(currentAngle);
 
-// ── Easing ────────────────────────────────────────────────────────────────────
 function easeOut(t) {
     return 1 - Math.pow(1 - t, 4);
 }
 
-// ── Спин ─────────────────────────────────────────────────────────────────────
 function spin() {
     if (spinning) return;
     spinning = true;
@@ -129,7 +122,7 @@ function spin() {
             spinning = false;
 
             const won = SECTORS[winningSector];
-            pendingStars = won.stars; // сохраняем!
+            pendingStars = won.stars;
 
             resultText.textContent = `🎉 Ты выиграл ${won.label}!`;
             resultBox.classList.remove("hidden");
@@ -139,9 +132,8 @@ function spin() {
             setTimeout(() => {
                 btn.textContent = "✅ Забрать выигрыш";
                 btn.disabled = false;
-                // полностью заменяем обработчик
                 btn.onclick = null;
-                btn.replaceWith(btn.cloneNode(true)); // убираем все старые listeners
+                btn.replaceWith(btn.cloneNode(true));
                 const newBtn = document.getElementById("spin-btn");
                 newBtn.textContent = "✅ Забрать выигрыш";
                 newBtn.disabled = false;
@@ -153,7 +145,6 @@ function spin() {
     animId = requestAnimationFrame(animate);
 }
 
-// ── Отправка результата в бот ────────────────────────────────────────────────
 function claimReward() {
     if (pendingStars === null) {
         alert("Ошибка: нет результата для отправки");
@@ -162,7 +153,6 @@ function claimReward() {
 
     const payload = JSON.stringify({ result: pendingStars });
 
-    // Проверяем что sendData доступен
     if (!tg || typeof tg.sendData !== "function") {
         alert("Ошибка: Telegram WebApp недоступен");
         return;
@@ -175,7 +165,6 @@ function claimReward() {
     }
 }
 
-// ── Частицы-звёзды ───────────────────────────────────────────────────────────
 function spawnParticles(count) {
     const n = Math.min(count, 20);
     for (let i = 0; i < n; i++) {
@@ -191,6 +180,5 @@ function spawnParticles(count) {
     }
 }
 
-// ── Кнопка ───────────────────────────────────────────────────────────────────
 const btn = document.getElementById("spin-btn");
 btn.addEventListener("click", spin);
