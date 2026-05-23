@@ -1,15 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 
+const tg = window.Telegram?.WebApp;
+
 const SECTORS = [
-  { label: "1",  color: "#7F77DD", text: "#fff" },
-  { label: "2",  color: "#378ADD", text: "#fff" },
-  { label: "3",  color: "#1D9E75", text: "#fff" },
-  { label: "5",  color: "#BA7517", text: "#fff" },
-  { label: "10", color: "#D4537E", text: "#fff" },
-  { label: "15", color: "#D85A30", text: "#fff" },
-  { label: "25", color: "#534AB7", text: "#fff" },
-  { label: "50", color: "#185FA5", text: "#fff" },
+  { label: "1",  stars: 1,  color: "#7F77DD", text: "#fff" },
+  { label: "2",  stars: 2,  color: "#378ADD", text: "#fff" },
+  { label: "3",  stars: 3,  color: "#1D9E75", text: "#fff" },
+  { label: "5",  stars: 5,  color: "#BA7517", text: "#fff" },
+  { label: "10", stars: 10, color: "#D4537E", text: "#fff" },
+  { label: "15", stars: 15, color: "#D85A30", text: "#fff" },
+  { label: "25", stars: 25, color: "#534AB7", text: "#fff" },
+  { label: "50", stars: 50, color: "#185FA5", text: "#fff" },
 ];
 
 const R = 160;
@@ -30,12 +32,19 @@ function sectorPath(startDeg, endDeg) {
 }
 
 export default function App() {
-  const tg = window.Telegram?.WebApp;
   const [rotation, setRotation] = useState(0);
   const [result, setResult]     = useState(null);
   const [claimed, setClaimed]   = useState(false);
   const spinning = useRef(false);
   const totalRef = useRef(0);
+
+  useEffect(() => {
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.enableClosingConfirmation();
+    }
+  }, []);
 
   function spin() {
     if (spinning.current) return;
@@ -55,16 +64,8 @@ export default function App() {
     }, 4300);
   }
 
-  function claim() {
-    if (!result || claimed) return;
-    const payload = JSON.stringify({ result: parseInt(result.label) });
-    if (tg?.sendData) {
-      tg.sendData(payload);
-    } else {
-      console.log("sendData:", payload);
-      alert("Dev mode: " + payload);
-    }
-    setClaimed(true);
+  function claimReward(stars) {
+    tg.sendData(JSON.stringify({ result: stars }));
   }
 
   const sectorAngle = 360 / SECTORS.length;
@@ -143,7 +144,7 @@ export default function App() {
             aria-live="assertive"
             aria-atomic="true"
           >
-            Вы выиграли <strong>{result.label} ★</strong>
+            🎉 Ты выиграл <strong>{result.label} ★</strong>!
           </div>
         )}
       </main>
@@ -153,15 +154,14 @@ export default function App() {
           <>
             <button
               className="btn btn-claim"
-              onClick={claim}
+              onClick={() => claimReward(result.stars)}
               aria-label={`Забрать ${result.label} звёзд`}
             >
-              🎁 Забрать {result.label} ★
+              ✅ Забрать выигрыш
             </button>
             <button
               className="btn btn-secondary"
               onClick={spin}
-              aria-label="Крутить ещё раз"
             >
               Крутить ещё
             </button>
@@ -170,10 +170,10 @@ export default function App() {
           <button
             className="btn"
             onClick={spin}
-            disabled={spinning.current || claimed}
+            disabled={spinning.current}
             aria-label={spinning.current ? "Крутится..." : "Крутить колесо"}
           >
-            {spinning.current ? "Крутится..." : claimed ? "Готово ✓" : "Крутить"}
+            {spinning.current ? "Крутится..." : "Крутить"}
           </button>
         )}
       </div>
