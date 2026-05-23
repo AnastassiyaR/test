@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Nunito:wght@400;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #F4EFFC;
+  font-family: 'Nunito', sans-serif;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: #534AB7;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 14px rgba(83,74,183,0.25);
+}
+.title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.warning {
+  margin: 20px 16px 0;
+  padding: 12px 14px;
+  background: rgba(186,117,23,0.12);
+  border: 1.5px solid rgba(186,117,23,0.35);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #633806;
+}
+
+.center-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.pointer {
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 30px solid #534AB7;
+  margin-bottom: 6px;
+  z-index: 2;
+}
+
+.wheel-wrap {
+  width: 320px;
+  height: 320px;
+}
+
+.roulette-svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 4.3s cubic-bezier(0.08, 0.68, 0.1, 1);
+}
+
+.result {
+  margin-top: 22px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3C3489;
+  animation: pop 0.4s ease;
+}
+@keyframes pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+.btn-row { padding: 20px 16px 40px; }
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: #534AB7;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(83,74,183,0.35);
+  transition: transform .15s, background .15s;
+}
+.btn:hover:not(:disabled) { background: #3C3489; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .roulette-svg { transition: none; }
+  .result { animation: none; }
+}
