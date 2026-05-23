@@ -2,14 +2,14 @@ import { useState, useRef } from "react";
 import "./App.css";
 
 const SECTORS = [
-  { label: "1",  color: "#7F77DD", text: "#fff", name: "фиолетовый" },
-  { label: "2",  color: "#378ADD", text: "#fff", name: "синий" },
-  { label: "3",  color: "#1D9E75", text: "#fff", name: "бирюзовый" },
-  { label: "5",  color: "#BA7517", text: "#fff", name: "янтарный" },
-  { label: "10", color: "#D4537E", text: "#fff", name: "розовый" },
-  { label: "15", color: "#D85A30", text: "#fff", name: "коралловый" },
-  { label: "25", color: "#534AB7", text: "#fff", name: "индиго" },
-  { label: "50", color: "#185FA5", text: "#fff", name: "тёмно-синий" },
+  { label: "1",  color: "#7F77DD", text: "#fff" },
+  { label: "2",  color: "#378ADD", text: "#fff" },
+  { label: "3",  color: "#1D9E75", text: "#fff" },
+  { label: "5",  color: "#BA7517", text: "#fff" },
+  { label: "10", color: "#D4537E", text: "#fff" },
+  { label: "15", color: "#D85A30", text: "#fff" },
+  { label: "25", color: "#534AB7", text: "#fff" },
+  { label: "50", color: "#185FA5", text: "#fff" },
 ];
 
 const R = 160;
@@ -30,8 +30,10 @@ function sectorPath(startDeg, endDeg) {
 }
 
 export default function App() {
+  const tg = window.Telegram?.WebApp;
   const [rotation, setRotation] = useState(0);
   const [result, setResult]     = useState(null);
+  const [claimed, setClaimed]   = useState(false);
   const spinning = useRef(false);
   const totalRef = useRef(0);
 
@@ -39,6 +41,7 @@ export default function App() {
     if (spinning.current) return;
     spinning.current = true;
     setResult(null);
+    setClaimed(false);
 
     const winIndex    = Math.floor(Math.random() * SECTORS.length);
     const sectorAngle = 360 / SECTORS.length;
@@ -50,6 +53,18 @@ export default function App() {
       spinning.current = false;
       setResult(SECTORS[winIndex]);
     }, 4300);
+  }
+
+  function claim() {
+    if (!result || claimed) return;
+    const payload = JSON.stringify({ result: parseInt(result.label) });
+    if (tg?.sendData) {
+      tg.sendData(payload);
+    } else {
+      console.log("sendData:", payload);
+      alert("Dev mode: " + payload);
+    }
+    setClaimed(true);
   }
 
   const sectorAngle = 360 / SECTORS.length;
@@ -128,21 +143,39 @@ export default function App() {
             aria-live="assertive"
             aria-atomic="true"
           >
-            Вы выиграли{" "}
-            <strong>{result.label} ★</strong>
+            Вы выиграли <strong>{result.label} ★</strong>
           </div>
         )}
       </main>
 
       <div className="btn-row">
-        <button
-          className="btn"
-          onClick={spin}
-          disabled={spinning.current}
-          aria-label={spinning.current ? "Крутится..." : "Крутить колесо"}
-        >
-          {spinning.current ? "Крутится..." : "Крутить"}
-        </button>
+        {result && !claimed ? (
+          <>
+            <button
+              className="btn btn-claim"
+              onClick={claim}
+              aria-label={`Забрать ${result.label} звёзд`}
+            >
+              🎁 Забрать {result.label} ★
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={spin}
+              aria-label="Крутить ещё раз"
+            >
+              Крутить ещё
+            </button>
+          </>
+        ) : (
+          <button
+            className="btn"
+            onClick={spin}
+            disabled={spinning.current || claimed}
+            aria-label={spinning.current ? "Крутится..." : "Крутить колесо"}
+          >
+            {spinning.current ? "Крутится..." : claimed ? "Готово ✓" : "Крутить"}
+          </button>
+        )}
       </div>
     </div>
   );

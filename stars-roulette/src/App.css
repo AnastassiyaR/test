@@ -113,3 +113,25 @@ body {
   .roulette-svg { transition: none; }
   .result { animation: none; }
 }
+
+.btn-claim {
+  background: #1D9E75;
+  box-shadow: 0 4px 16px rgba(29,158,117,0.35);
+  margin-bottom: 10px;
+}
+.btn-claim:hover:not(:disabled) { background: #0F6E56; }
+
+.btn-secondary {
+  background: transparent;
+  border: 2px solid #534AB7;
+  color: #534AB7;
+  box-shadow: none;
+}
+.btn-secondary:hover:not(:disabled) { background: rgba(83,74,183,0.08); }
+
+.btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px 16px 40px;
+}
