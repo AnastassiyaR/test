@@ -180,5 +180,8 @@ function spawnParticles(count) {
     }
 }
 
-const btn = document.getElementById("spin-btn");
-btn.addEventListener("click", spin);
+// Запускаем спин автоматически при открытии WebApp
+// Небольшая задержка чтобы пользователь увидел колесо перед стартом
+window.addEventListener("load", () => {
+    setTimeout(spin, 800);
+});
