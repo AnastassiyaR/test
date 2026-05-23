@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/stars-roulette/',  // название твоего репозитория на GitHub
+  base: '/test/',  // ← название репо
 })
