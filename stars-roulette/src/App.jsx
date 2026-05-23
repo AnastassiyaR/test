@@ -35,7 +35,6 @@ export default function App() {
   const [rotation, setRotation] = useState(0);
   const [result, setResult]     = useState(null);
   const [claimed, setClaimed]   = useState(false);
-  const [debugMsg, setDebugMsg] = useState("");
   const spinning = useRef(false);
   const totalRef = useRef(0);
 
@@ -44,9 +43,6 @@ export default function App() {
       tg.ready();
       tg.expand();
       tg.enableClosingConfirmation();
-      setDebugMsg(`tg OK, initData: ${tg.initData ? tg.initData.slice(0, 20) + "..." : "ПУСТО"}`);
-    } else {
-      setDebugMsg("tg = undefined");
     }
   }, []);
 
@@ -69,20 +65,8 @@ export default function App() {
   }
 
   function claimReward(stars) {
-    if (!tg) {
-      setDebugMsg("ОШИБКА: tg = undefined");
-      return;
-    }
-    if (!tg.sendData) {
-      setDebugMsg("ОШИБКА: tg.sendData недоступен. initData: " + (tg.initData || "ПУСТО"));
-      return;
-    }
-    try {
-      tg.sendData(JSON.stringify({ result: stars }));
-      setClaimed(true);
-    } catch (e) {
-      setDebugMsg("ОШИБКА sendData: " + e.message);
-    }
+    tg.sendData(JSON.stringify({ result: stars }));
+    setClaimed(true);
   }
 
   const sectorAngle = 360 / SECTORS.length;
@@ -92,21 +76,6 @@ export default function App() {
       <header className="header" role="banner">
         <span className="title" aria-label="Stars Roulette">★ Stars Roulette</span>
       </header>
-
-      {debugMsg && (
-        <div style={{
-          margin: "8px 16px",
-          padding: "8px 12px",
-          background: "#fff3cd",
-          border: "1px solid #ffc107",
-          borderRadius: "8px",
-          fontSize: "12px",
-          wordBreak: "break-all",
-          color: "#333"
-        }}>
-          {debugMsg}
-        </div>
-      )}
 
       <p className="warning" role="note">
         Крутите барабан и выигрывайте звёзды!
@@ -187,7 +156,6 @@ export default function App() {
             <button
               className="btn btn-claim"
               onClick={() => claimReward(result.stars)}
-              aria-label={`Забрать ${result.label} звёзд`}
             >
               ✅ Забрать выигрыш
             </button>
@@ -203,7 +171,6 @@ export default function App() {
             className="btn"
             onClick={spin}
             disabled={spinning.current}
-            aria-label={spinning.current ? "Крутится..." : "Крутить колесо"}
           >
             {spinning.current ? "Крутится..." : "Крутить"}
           </button>
